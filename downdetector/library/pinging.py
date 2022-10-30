@@ -1,24 +1,18 @@
 import re
 
-from downdetector.library.classes import Server
-from downdetector.library.constants import INVALID
+from downdetector.library.classes import Server, InvalidIPException
 
 import ping3
 
 
 def checkIfOnline(ip: str):
-    # Sends one ping to the ip provided; returns true if the device replies, false if not.
-    # Returns error types if they occur (OSError nad TypeError supported) or INVALID constant if ip is invalid.
+    """ Sends one ping to the ip provided; returns true if the device replies, false if not.
+    May raise OSError, TypeError, InvalidError """
 
-    if validateIP(ip):
-        return INVALID
+    if not validateIP(ip):
+        raise InvalidIPException("IP address supplied is invalid.")
 
-    try:
-        return bool(ping3.ping(dest_addr=ip))
-    except OSError:
-        return OSError
-    except TypeError:
-        return TypeError
+    return bool(ping3.ping(dest_addr=ip))
 
 
 def repeatedPing(ip: str, max_fails: int) -> bool:
@@ -31,20 +25,8 @@ def repeatedPing(ip: str, max_fails: int) -> bool:
 
         status = checkIfOnline(ip)
 
-        if status == INVALID:
-            ...
-            # todo: notify of error (invalid ip)
-
-        elif status == OSError:
-            ...
-            # todo: notify of error (likely disconnected)
-
-        elif status == TypeError:
-            ...
-            # todo: notify of error (should never happen)
-
         # At this point status is either true (device online) or false (device offline)
-        elif status:
+        if status:
             # Device online
             return True
         else:
@@ -53,41 +35,21 @@ def repeatedPing(ip: str, max_fails: int) -> bool:
 
     return False
 
-#todo was checking this one when i left
-def pingServers(servers: [Server], max_fails: int, failure_func=None, failure_args=tuple()):
+# todo: test this thing
+def getServerStatus(server: Server, max_fails: int) -> tuple:
     """
-    Pings all the servers ips of all sites provided by the servers list. If a ping fails, it is pinged again until either
-    it responds, or it fails max_fails times. Updates the online state of each server accordingly.
-
-    :param servers: A list of AvigilonSite objects
-    :param max_fails: The number of pings required for a server to be deemed offline
-    :param failure_func: What is run when a site has an offline server
-    :param failure_args: Arguments to be passed to failure_func when a server fails
+    Pings the server ip; if it doesn't reply, it is pinged until it responds, or it fails max_fails times.
+    If it responds eventually, its online state is set to True, else it set to False
+    :param server: The Server object to be pinged
+    :param max_fails: The number of failed pings required for a server to be deemed offline
+    :return: A tuple of 2 bools, with first element being whether a server changed state, second element being the new state
     """
 
-    # For each site
-    for server in servers:
-        # Ping all the server ips, keeping count of successes
-        failure = False
-        for ip in server.ips:
-            # If this IP of the server is valid
-            if validateIP(ip):
-                # Ping; if a server fails, skip the rest of the site's IP addresses and break
-                if not repeatedPing(ip, max_fails):
-                    failure = True
-                    break
-            else:
-                # Invalid IP
-                failure = True
-                break
-                # todo: Notify of invalid IP address
+    # Ping server
+    prev_state = server.is_online
+    new_state = server.is_online = repeatedPing(server.ip, max_fails)
 
-        # Update server state
-        server.all_online = not failure
-        # todo test
-        # Call the failure function if provided and supply it with the arguments
-        if failure and failure_func:
-            failure_func(*failure_args)
+    return prev_state == new_state, new_state
 
 
 def validateIP(ip: str) -> bool:
@@ -98,9 +60,15 @@ def validateIP(ip: str) -> bool:
 
 if __name__ == "__main__":
     ...
-    print(repeatedPing("192.168.1.1", 5))
-    print(repeatedPing("192.168.1.0", 5))
-    print(repeatedPing("", 5))
-    print(repeatedPing("9+65+", 5))
-    print(repeatedPing("192.5", 5))
-    print(repeatedPing(None, 5))
+    cases = [("192.168.1.1", 5),
+             ("192.168.1.0", 5),
+             ("", 5),
+             ("9+65+", 5),
+             ("192.5", 5),
+             (None, 5)]
+
+    for case in cases:
+        try:
+            print(repeatedPing(*case))
+        except BaseException as e:
+            print(e)

@@ -21,11 +21,15 @@ def getPath():
 class Server:
     """ Represents multiple avigilon servers on one site """
 
-    def __init__(self, name: str, ips: [str], server_type):
+    def __init__(self, name: str, ip: str, server_type):
         self.name = name
-        self.ips = ips
-        self.online = True
+        self.ip = ip
+        self.is_online = True
         self.server_type = server_type
 
     def __repr__(self):
         ...  # todo
+
+
+class InvalidIPException(BaseException):
+    pass

@@ -123,7 +123,7 @@ def getOfflineDevices(devices):
 
         except AttributeError:
             # The device must be a camera because of the AttributeError thrown
-            if not device.online:
+            if not device.is_online:
                 offline_list.append(device)
 
     return offline_list
