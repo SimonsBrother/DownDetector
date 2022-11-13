@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 import os
 
+import openpyxl.worksheet.worksheet as pyxl
+
 
 # Returns the current directory, allowing for frozen state (i.e., compiled exe)
 # NOT MY OWN WORK; SOURCE:
@@ -19,16 +21,16 @@ def getPath():
 
 
 class Server:
-    """ Represents multiple avigilon servers on one site """
+    """ Represents an individual server of a site """
 
-    def __init__(self, name: str, ip: str, server_type):
+    def __init__(self, name: str, ip: str, is_online: bool, status_cell: pyxl.Cell):
         self.name = name
         self.ip = ip
-        self.is_online = True
-        self.server_type = server_type
+        self.is_online = is_online
+        self.status_cell = status_cell
 
     def __repr__(self):
-        ...  # todo
+        return f"Server: {self.name}, {self.ip} [{'ONLINE' if self.is_online else 'OFFLINE'}]"
 
 
 class InvalidIPException(BaseException):
