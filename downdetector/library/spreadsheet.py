@@ -31,12 +31,14 @@ def getServerWorksheet(workbook: Workbook):
     return workbook["Servers"]
 
 
-def getServers(worksheet: pyxl.Worksheet):
+def getServers(path):
     """
     Gets all the servers from worksheet provided as a list of Server objects
-    :param worksheet: The worksheet from the spreadsheet
+    :param path: The path to the spreadsheet
     :return: A list of all the servers
     """
+
+    worksheet = load_workbook(filename=path)["Servers"]
 
     site_name_buffer = ""
     server_list = []
@@ -52,9 +54,9 @@ def getServers(worksheet: pyxl.Worksheet):
         if row[1].value is not None:
             ip = str(row[1].value)
 
-            status = str(row[2].value).lower()
+            status = str(row[2].value)
 
-            server_list.append(Server(site_name_buffer, ip, status == "online", row[2]))
+            server_list.append(Server(site_name_buffer, ip, status == ONLINE, row[2]))
 
     return server_list
 
@@ -98,6 +100,6 @@ def setCellStatus(cell: pyxl.Cell, status):
 
 if __name__ == "__main__":
     tweakWorksheet(getTestExcelPath())
-    servers = getServers(getServerWorksheet(load_workbook(filename=getTestExcelPath())))
+    servers = getServers(getTestExcelPath())
     for s in servers:
         print(s)

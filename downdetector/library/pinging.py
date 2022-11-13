@@ -1,6 +1,6 @@
 import re
 
-from downdetector.library.classes import Server, InvalidIPException
+from downdetector.library.classes import Server, InvalidIPException, State
 
 import ping3
 
@@ -36,7 +36,7 @@ def repeatedPing(ip: str, max_fails: int) -> bool:
     return False
 
 # todo: test this thing
-def getServerStatus(server: Server, max_fails: int) -> tuple:
+def getServerStatus(server: Server, max_fails: int) -> State:
     """
     Pings the server ip; if it doesn't reply, it is pinged until it responds, or it fails max_fails times.
     If it responds eventually, its online state is set to True, else it set to False
@@ -49,7 +49,7 @@ def getServerStatus(server: Server, max_fails: int) -> tuple:
     prev_state = server.is_online
     new_state = server.is_online = repeatedPing(server.ip, max_fails)
 
-    return prev_state == new_state, new_state
+    return State(prev_state == new_state, new_state)
 
 
 def validateIP(ip: str) -> bool:
