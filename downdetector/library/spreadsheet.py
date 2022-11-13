@@ -3,6 +3,7 @@ import os
 
 import openpyxl.worksheet.worksheet as pyxl
 from openpyxl.workbook.workbook import Workbook
+from openpyxl.styles.fills import PatternFill
 from openpyxl import load_workbook
 
 from downdetector.library.classes import Server
@@ -66,6 +67,7 @@ def tweakWorksheet(path):
 
     workbook = load_workbook(filename=path)
     worksheet = getServerWorksheet(workbook)
+
     # For each row
     for row in worksheet.iter_rows(min_row=2, max_col=3):
 
@@ -77,6 +79,8 @@ def tweakWorksheet(path):
             if status not in (ONLINE, OFFLINE):
                 # If invalid, set its state to OFFLINE
                 setCellStatus(row[2], OFFLINE)
+            else:
+                setCellStatus(row[2], status)
         else:
             setCellStatus(row[2], None)
 
@@ -85,17 +89,22 @@ def tweakWorksheet(path):
 
 def setCellStatus(cell: pyxl.Cell, status):
     """ Sets the status of a cell (for colouring later) """
+    colour = "00333333"
     if status == ONLINE:
         cell.value = ONLINE
+        colour = "0000FF00"
 
     elif status == OFFLINE:
         cell.value = OFFLINE
+        colour = "00FF0000"
 
     elif status is None:
         cell.value = None
 
     else:
         raise ValueError("Invalid status")
+
+    cell.fill = PatternFill(fill_type="solid", bgColor=colour, fgColor=colour)
 
 
 if __name__ == "__main__":
