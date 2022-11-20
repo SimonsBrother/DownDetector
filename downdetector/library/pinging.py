@@ -35,7 +35,7 @@ def repeatedPing(ip: str, max_fails: int) -> bool:
 
     return False
 
-# todo: test this thing
+
 def getServerStatus(server: Server, max_fails: int) -> State:
     """
     Pings the server ip; if it doesn't reply, it is pinged until it responds, or it fails max_fails times.

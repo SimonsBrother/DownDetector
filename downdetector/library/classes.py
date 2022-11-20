@@ -37,7 +37,7 @@ class State:
 class Server:
     """ Represents an individual server of a site """
 
-    def __init__(self, name: str, ip: str, is_online: bool, status_cell: pyxl.Cell):
+    def __init__(self, name: str, ip: str, is_online: bool, status_cell: str):
         self.name = name
         self.ip = ip
         self.is_online = is_online
@@ -45,7 +45,6 @@ class Server:
 
     def __repr__(self):
         return f"Server: {self.name}, {self.ip} [{'ONLINE' if self.is_online else 'OFFLINE'}]"
-
 
     def setState(self, state: State):
         self.is_online = state.new_state

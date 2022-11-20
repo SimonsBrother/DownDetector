@@ -22,9 +22,9 @@ def getTestExcelPath():
     return windows_excel_path if os.name == "nt" else mac_excel_path
 
 
-def validateSSPresence(path):
+def spreadsheetIsPresent(path):
     """ Check the file exists """
-    return os.path.isfile(path)
+    return (os.path.isfile(path) and str(path).endswith(".xlsx")) or path == ""
 
 
 def getServerWorksheet(workbook: Workbook):
@@ -42,23 +42,25 @@ def getServers(path):
     workbook = load_workbook(filename=path)
     worksheet = workbook["Servers"]
 
-    site_name_buffer = ""
+    current_site_name = ""
     server_list = []
 
+    # Work down the spreadsheet, changing the current site name as they are encountered, creating server objects with
+    #  the IP addresses and statuses.
     # For each row
     for row in worksheet.iter_rows(min_row=2, max_col=3):
 
         # Change the site name "buffer" if a new name is encountered
         if row[0].value is not None:
-            site_name_buffer = str(row[0].value)
+            current_site_name = str(row[0].value)
 
         # If an IP is available
         if row[1].value is not None:
-            ip = str(row[1].value).replace(" ", "")
+            ip = str(row[1].value).replace(" ", "")  # Get the IP in string form without spaces
 
             status = str(row[2].value)
 
-            server_list.append(Server(site_name_buffer, ip, status == ONLINE, row[2]))
+            server_list.append(Server(current_site_name, ip, status == ONLINE, row[2].coordinate))
 
     workbook.close()
     return server_list
@@ -80,34 +82,40 @@ def tweakWorksheet(path):
             # Check if its status is valid
             if status not in (ONLINE, OFFLINE):
                 # If invalid, set its state to OFFLINE
-                setCellStatus(row[2], OFFLINE)
+                setCellStatus(row[2].coordinate, OFFLINE, worksheet)
             else:
-                setCellStatus(row[2], status)
+                setCellStatus(row[2].coordinate, status, worksheet)
         else:
-            setCellStatus(row[2], None)
+            setCellStatus(row[2].coordinate, None, worksheet)
 
     workbook.save(path)
     workbook.close()
 
 
-def setCellStatus(cell: pyxl.Cell, status):
-    """ Sets the status of a cell (for colouring later) """
+def setCellStatus(cell: str, status, worksheet: pyxl.Worksheet):
+    """
+    Sets the status of a cell (for colouring later) using the path to the spreadsheet. Must be saved externally.
+    :param cell: The coordinates of the cell to set the status of e.g. C3
+    :param status: None, ONLINE, or OFFLINE
+    :param worksheet: The worksheet of the server spreadsheet
+    """
+
     colour = "00333333"
-    if status == ONLINE:
-        cell.value = ONLINE
+    if status == ONLINE or status is True:
+        worksheet[cell].value = ONLINE
         colour = "0000FF00"
 
-    elif status == OFFLINE:
-        cell.value = OFFLINE
+    elif status == OFFLINE or status is False:
+        worksheet[cell].value = OFFLINE
         colour = "00FF0000"
 
     elif status is None:
-        cell.value = None
+        worksheet[cell].value = None
 
     else:
         raise ValueError("Invalid status")
 
-    cell.fill = PatternFill(fill_type="solid", bgColor=colour, fgColor=colour)
+    worksheet[cell].fill = PatternFill(fill_type="solid", bgColor=colour, fgColor=colour)
 
 
 if __name__ == "__main__":
