@@ -12,7 +12,7 @@ def checkIfOnline(ip: str):
     if not validateIP(ip):
         raise InvalidIPException("IP address supplied is invalid.")
 
-    return bool(ping3.ping(dest_addr=ip))
+    return isinstance(ping3.ping(dest_addr=ip), float)
 
 
 def repeatedPing(ip: str, max_fails: int) -> bool:
@@ -45,11 +45,15 @@ def getServerStatus(server: Server, max_fails: int) -> State:
     :return: A tuple of 2 bools, with first element being whether a server changed state, second element being the new state
     """
 
-    # Ping server
+    # Store previous online state of server
     prev_state = server.is_online
-    new_state = server.is_online = repeatedPing(server.ip, max_fails)
+    # Ping server to get new state
+    new_state = repeatedPing(server.ip, max_fails)
 
-    return State(prev_state == new_state, new_state)
+    # The state has changed if the new state is different
+    state_changed = prev_state != new_state
+
+    return State(state_changed, new_state)
 
 
 def validateIP(ip: str) -> bool:
@@ -59,6 +63,18 @@ def validateIP(ip: str) -> bool:
 
 
 if __name__ == "__main__":
+    c = Server("My Mac", "192.168.1.28", False, None)
+    print(c)
+
+    while True:
+        state = getServerStatus(c, 5)
+
+        c.setState(state)
+        if state.state_changed:
+            ...
+            print(state)
+
+    exit()
     ...
     cases = [("192.168.1.1", 5),
              ("192.168.1.0", 5),

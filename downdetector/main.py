@@ -3,16 +3,15 @@ from downdetector.library.spreadsheet import getServers, tweakWorksheet, getTest
 from downdetector.library.classes import Server
 
 path = getTestExcelPath()
-max_fails = 10
+max_fails = 1
 
 tweakWorksheet(path)
 servers = getServers(path)
 
-
-print(getServerStatus(servers[0], 2))
-exit()
+input("Press enter")
 
 while True:
     for server in servers:
         status = getServerStatus(server, max_fails)
-        print(status)
+        print(f"{server}, {status}")
+    break

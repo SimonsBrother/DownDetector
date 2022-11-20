@@ -21,6 +21,19 @@ def getPath():
     return path
 
 
+@dataclasses.dataclass
+class State:
+    """ For storing the state of servers """
+    state_changed: bool
+    new_state: bool
+
+    def __repr__(self):
+        if self.state_changed:
+            return f"State changed to {self.new_state}"
+        else:
+            return f"State unchanged, remains {self.new_state}"
+
+
 class Server:
     """ Represents an individual server of a site """
 
@@ -34,18 +47,9 @@ class Server:
         return f"Server: {self.name}, {self.ip} [{'ONLINE' if self.is_online else 'OFFLINE'}]"
 
 
+    def setState(self, state: State):
+        self.is_online = state.new_state
+
+
 class InvalidIPException(BaseException):
     pass
-
-
-@dataclasses.dataclass
-class State:
-    """ For storing the state of servers """
-    state_changed: bool
-    new_state: bool
-
-    def __repr__(self):
-        if self.state_changed:
-            return f"State changed to {self.new_state}"
-        else:
-            return "State unchanged"

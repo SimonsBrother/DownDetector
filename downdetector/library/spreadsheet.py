@@ -11,7 +11,7 @@ from downdetector.library.pinging import validateIP
 # todo: IP validation
 
 mac_excel_path = r"/Volumes/Public/Grade 3 Security Documents/BVH/BVH CCTV Support Checks/DownDetectorServers.xlsx"
-windows_excel_path = r""
+windows_excel_path = r"X:\Grade 3 Security Documents\BVH\BVH CCTV Support Checks\DownDetectorServers.xlsx"
 
 ONLINE = "ONLINE"
 OFFLINE = "OFFLINE"
@@ -39,7 +39,8 @@ def getServers(path):
     :return: A list of all the servers
     """
 
-    worksheet = load_workbook(filename=path)["Servers"]
+    workbook = load_workbook(filename=path)
+    worksheet = workbook["Servers"]
 
     site_name_buffer = ""
     server_list = []
@@ -53,12 +54,13 @@ def getServers(path):
 
         # If an IP is available
         if row[1].value is not None:
-            ip = str(row[1].value)
+            ip = str(row[1].value).replace(" ", "")
 
             status = str(row[2].value)
 
             server_list.append(Server(site_name_buffer, ip, status == ONLINE, row[2]))
 
+    workbook.close()
     return server_list
 
 
@@ -85,6 +87,7 @@ def tweakWorksheet(path):
             setCellStatus(row[2], None)
 
     workbook.save(path)
+    workbook.close()
 
 
 def setCellStatus(cell: pyxl.Cell, status):
